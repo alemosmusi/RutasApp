@@ -1,8 +1,11 @@
-import React, { useEffect } from 'react'
-import MapView, { MapMarkerProps, Marker, PROVIDER_GOOGLE } from 'react-native-maps'
+import React, { useEffect, useRef } from 'react'
+import MapView, { MapMarkerProps } from 'react-native-maps'
 
 
 import Geolocation from '@react-native-community/geolocation';
+import { useLocation } from '../hooks/useLocation';
+import { LoadingScreen } from '../pages/LoadingScreen';
+import { Fab } from './Fab';
 
 
 
@@ -17,17 +20,64 @@ interface Props {
 export const Map = ({markers}:Props) => {
 
 
+  const {
+    hasLocation,
+    initialPosition, 
+    getCurrentLocation, 
+    followUserLocation,
+    userLocation,
+    stopFollowUserLocation } = useLocation()
 
-    useEffect(() => {
-        Geolocation.getCurrentPosition(
-            info => console.log(info),
-            (err) => console.log({err}),
-            {
-                enableHighAccuracy: true
-            }
-            
-            );
-    }, [])
+  const mapViewRef = useRef<MapView>()
+  const following = useRef<boolean>(true)
+
+
+  useEffect(() => {
+    followUserLocation();
+    return ()=>{
+      stopFollowUserLocation
+    }
+  }, [])
+
+  useEffect(() => {
+
+    if ( !following.current ) return
+    
+    const { latitude, longitude } = userLocation
+
+    mapViewRef.current?.animateCamera({
+      center: {
+        latitude: latitude,
+        longitude: longitude
+      }
+    })
+
+
+  }, [userLocation])
+  
+  
+
+  const centerPosition = async()=>{
+
+    const location = await getCurrentLocation()
+
+    following.current = true
+
+    mapViewRef.current?.animateCamera({
+      center: {
+        latitude: location.latitude,
+        longitude: location.longitude
+      }
+    })
+  }
+
+  if(!hasLocation){
+    return <LoadingScreen />
+  }
+
+
+
+    
     
 
 
@@ -35,15 +85,18 @@ export const Map = ({markers}:Props) => {
   return (
     <>
         <MapView
+          ref={ (el) => mapViewRef.current = el!}
           style={{flex:1}}
         //   provider={PROVIDER_GOOGLE}
           showsUserLocation
           initialRegion={{
-            latitude: 37.78825,
-            longitude: -122.4324,
+            latitude: initialPosition!.latitude,
+            longitude: initialPosition!.longitude,
             latitudeDelta: 0.0922,
             longitudeDelta: 0.0421,
           }}
+          // este es para cuando mueve el mapa
+          onTouchStart={()=> following.current = false}
         >
 
             
@@ -58,6 +111,17 @@ export const Map = ({markers}:Props) => {
                 /> */}
         
         </MapView>
+
+        <Fab 
+          iconName='compass-outline'
+          onPress={centerPosition}
+          style={{
+            position: 'absolute',
+            bottom: 20,
+            right: 20
+          }}
+          
+        />
     </>
   )
 }
