@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import MapView, { MapMarkerProps } from 'react-native-maps'
+import MapView, { MapMarkerProps, Polyline } from 'react-native-maps'
 
 
 import Geolocation from '@react-native-community/geolocation';
@@ -26,7 +26,8 @@ export const Map = ({markers}:Props) => {
     getCurrentLocation, 
     followUserLocation,
     userLocation,
-    stopFollowUserLocation } = useLocation()
+    stopFollowUserLocation,
+    routeLines } = useLocation()
 
   const mapViewRef = useRef<MapView>()
   const following = useRef<boolean>(true)
@@ -98,6 +99,12 @@ export const Map = ({markers}:Props) => {
           // este es para cuando mueve el mapa
           onTouchStart={()=> following.current = false}
         >
+
+          <Polyline 
+            coordinates={routeLines}
+            strokeColor='black'
+            strokeWidth={3}
+          />
 
             
                 {/* <Marker
