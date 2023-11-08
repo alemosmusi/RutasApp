@@ -1,13 +1,23 @@
 import { createStackNavigator } from '@react-navigation/stack';
 import { MapScreen } from '../pages/MapScreen';
 import { PermissionsScreen } from '../pages/PermissionsScreen';
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import { PermissionsContext } from '../context/PermissionsContext';
 import { LoadingScreen } from '../pages/LoadingScreen';
+
+
+import SplashScreen from 'react-native-splash-screen'
 
 const Stack = createStackNavigator();
 
 export const Navigator = ()=> {
+
+
+  useEffect(() => {
+    SplashScreen.hide();
+  
+  }, [])
+  
 
 
   const {permissions}=useContext(PermissionsContext)
